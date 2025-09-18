@@ -7,6 +7,8 @@ from .models import Destination, Flight, Hotel, Excursion, Booking
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.contenttypes.models import ContentType
+from django.contrib import messages
+from django.core.paginator import Paginator
 
 def index(request):
     destinations = Destination.objects.all()[:3]
@@ -195,4 +197,37 @@ def register(request):
 @login_required
 def profile(request):
     bookings = Booking.objects.filter(user=request.user)
-    return render(request, 'profile.html', {'bookings': bookings})
+    booking_type = request.GET.get('booking_type', '')
+    sort_by = request.GET.get('sort_by', 'created_at')
+
+    # Filter by booking type
+    if booking_type:
+        bookings = bookings.filter(content_type=ContentType.objects.get(model=booking_type))
+
+    # Sort bookings
+    if sort_by in ['created_at', '-created_at', 'total_price', '-total_price']:
+        bookings = bookings.order_by(sort_by)
+
+    # Pagination
+    paginator = Paginator(bookings, 5)  # 5 bookings per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'booking_type': booking_type,
+        'sort_by': sort_by
+    }
+    return render(request, 'profile.html', context)
+
+@login_required
+def cancel_booking(request, booking_id):
+    if request.method == 'POST':
+        try:
+            booking = Booking.objects.get(id=booking_id, user=request.user)
+            booking.delete()
+            messages.success(request, 'Бронирование успешно отменено.')
+        except Booking.DoesNotExist:
+            messages.error(request, 'Бронирование не найдено или вы не имеете к нему доступа.')
+        return redirect('travels:profile')
+    return redirect('travels:profile')

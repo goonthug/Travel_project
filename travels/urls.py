@@ -12,4 +12,5 @@ urlpatterns = [
     path('login/', LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', LogoutView.as_view(next_page='travels:index'), name='logout'),
     path('profile/', views.profile, name='profile'),
+    path('cancel_booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
 ]

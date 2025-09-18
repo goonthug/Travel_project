@@ -23,9 +23,37 @@
     </div>
     <h1>Личный кабинет</h1>
     <p>Пользователь: {{ user.username }}</p>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <p class="message {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
     <h2>Ваши бронирования</h2>
+    <form method="GET" action="{% url 'travels:profile' %}" class="filter-form">
+        <div class="form-group">
+            <label for="booking_type">Тип бронирования</label>
+            <select name="booking_type" id="booking_type">
+                <option value="" {% if not booking_type %}selected{% endif %}>Все</option>
+                <option value="flight" {% if booking_type == 'flight' %}selected{% endif %}>Рейсы</option>
+                <option value="hotel" {% if booking_type == 'hotel' %}selected{% endif %}>Отели</option>
+                <option value="excursion" {% if booking_type == 'excursion' %}selected{% endif %}>Экскурсии</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="sort_by">Сортировать по</label>
+            <select name="sort_by" id="sort_by">
+                <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Дате создания (новые)</option>
+                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Дате создания (старые)</option>
+                <option value="total_price" {% if sort_by == 'total_price' %}selected{% endif %}>Цене (возрастание)</option>
+                <option value="-total_price" {% if sort_by == '-total_price' %}selected{% endif %}>Цене (убывание)</option>
+            </select>
+        </div>
+        <button type="submit" class="btn">Применить</button>
+    </form>
     <section class="bookings">
-        {% for booking in bookings %}
+        {% for booking in page_obj %}
         <div class="booking-card">
             {% if booking.content_type.model == 'flight' %}
             <h3>{{ booking.content_object.airline }}: {{ booking.content_object.from_city }} → {{ booking.content_object.to_city }}</h3>
@@ -42,11 +70,33 @@
             {% endif %}
             <p>Участники: {{ booking.participants }}</p>
             <p>Итоговая цена: {{ booking.total_price }} ₽</p>
+            <p>Дата создания: {{ booking.created_at|date:"d.m.Y H:i" }}</p>
+            <form method="POST" action="{% url 'travels:cancel_booking' booking.id %}" class="cancel-form">
+                {% csrf_token %}
+                <button type="submit" class="btn cancel-btn">Отменить</button>
+            </form>
         </div>
         {% empty %}
         <p>Бронирования отсутствуют.</p>
         {% endfor %}
     </section>
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&booking_type={{ booking_type }}&sort_by={{ sort_by }}" class="btn pagination-btn">« Предыдущая</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="btn pagination-btn active">{{ num }}</span>
+        {% else %}
+        <a href="?page={{ num }}&booking_type={{ booking_type }}&sort_by={{ sort_by }}" class="btn pagination-btn">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&booking_type={{ booking_type }}&sort_by={{ sort_by }}" class="btn pagination-btn">Следующая »</a>
+        {% endif %}
+    </div>
+    {% endif %}
     <a href="{% url 'travels:index' %}" class="btn">На главную</a>
 </body>
 </html>

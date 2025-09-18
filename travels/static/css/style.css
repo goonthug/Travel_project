@@ -321,3 +321,76 @@
         margin-bottom: 10px;
     }
 }
+
+.messages {
+    margin: 10px 0;
+}
+.message {
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.cancel-form {
+    margin-top: 10px;
+}
+.cancel-btn {
+    background-color: #e53e3e;
+    color: white;
+}
+.cancel-btn:hover {
+    background-color: #c53030;
+}
+
+.filter-form {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.filter-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+.filter-form select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 200px;
+}
+@media (max-width: 600px) {
+    .filter-form {
+        flex-direction: column;
+    }
+    .filter-form select {
+        width: 100%;
+    }
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+.pagination-btn {
+    padding: 8px 12px;
+    text-decoration: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #333;
+}
+.pagination-btn:hover {
+    background-color: #f0f0f0;
+}
+.pagination-btn.active {
+    background-color: #2b6cb0;
+    color: white;
+    border-color: #2b6cb0;
+}
