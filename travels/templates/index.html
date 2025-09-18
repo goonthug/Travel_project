@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Путешествия</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/form.js' %}"></script>
+</head>
+<body>
+    <div class="auth-links">
+        {% if user.is_authenticated %}
+        <p>Привет, {{ user.username }}!
+            <a href="{% url 'travels:profile' %}">Личный кабинет</a> |
+            <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Выйти</button>
+            </form>
+        </p>
+        {% else %}
+        <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
+        {% endif %}
+    </div>
+    <h1>Путешествия</h1>
+    <div class="search-tabs">
+        <label><input type="radio" name="search_type" value="flights" checked> Рейсы</label>
+        <label><input type="radio" name="search_type" value="hotels"> Отели</label>
+        <label><input type="radio" name="search_type" value="excursions"> Экскурсии</label>
+    </div>
+    <form method="GET" action="{% url 'travels:flights' %}" class="search-form" id="search-form">
+        <div class="form-group" id="from-city-group">
+            <label for="from_city">Откуда</label>
+            <input type="text" id="from_city" name="from_city" value="{{ from_city|default:'' }}" placeholder="Город отправления" required>
+        </div>
+        <div class="form-group">
+            <label for="to_city">Куда</label>
+            <input type="text" id="to_city" name="to_city" value="{{ to_city|default:'' }}" placeholder="Город назначения" required>
+        </div>
+        <div class="form-group">
+            <label for="depart_date">Дата</label>
+            <input type="date" id="depart_date" name="depart_date" value="{{ depart_date|default:'' }}" required>
+        </div>
+        <div class="form-group">
+            <label for="travelers">Путешественники/Гости</label>
+            <input type="number" id="travelers" name="travelers" value="{{ travelers|default:1 }}" min="1" required>
+        </div>
+        <div class="form-filters">
+            <label class="flight-only"><input type="checkbox" name="direct_flights" {% if direct_flights %}checked{% endif %}> Прямые рейсы</label>
+            <label class="flight-only">
+                <select name="budget">
+                    <option value="" {% if not budget %}selected{% endif %}>Любой бюджет</option>
+                    <option value="low" {% if budget == 'low' %}selected{% endif %}>Эконом</option>
+                    <option value="medium" {% if budget == 'medium' %}selected{% endif %}>Средний</option>
+                    <option value="high" {% if budget == 'high' %}selected{% endif %}>Премиум</option>
+                </select>
+            </label>
+            <label class="flight-only">
+                <select name="flight_class">
+                    <option value="" {% if not flight_class %}selected{% endif %}>Любой класс</option>
+                    <option value="economy" {% if flight_class == 'economy' %}selected{% endif %}>Эконом</option>
+                    <option value="business" {% if flight_class == 'business' %}selected{% endif %}>Бизнес</option>
+                </select>
+            </label>
+            <label class="hotel-only">
+                <select name="accommodation">
+                    <option value="" {% if not accommodation %}selected{% endif %}>Любое жилье</option>
+                    <option value="hotel" {% if accommodation == 'hotel' %}selected{% endif %}>Отель</option>
+                    <option value="hostel" {% if accommodation == 'hostel' %}selected{% endif %}>Хостел</option>
+                    <option value="apartment" {% if accommodation == 'apartment' %}selected{% endif %}>Апартаменты</option>
+                </select>
+            </label>
+            <label class="excursion-only">
+                <select name="excursion_type">
+                    <option value="" {% if not excursion_type %}selected{% endif %}>Любой тип</option>
+                    <option value="group" {% if excursion_type == 'group' %}selected{% endif %}>Групповая</option>
+                    <option value="individual" {% if excursion_type == 'individual' %}selected{% endif %}>Индивидуальная</option>
+                </select>
+            </label>
+            <label class="excursion-only">
+                <select name="theme">
+                    <option value="" {% if not theme %}selected{% endif %}>Любая тематика</option>
+                    <option value="history" {% if theme == 'history' %}selected{% endif %}>История</option>
+                    <option value="nature" {% if theme == 'nature' %}selected{% endif %}>Природа</option>
+                    <option value="gastronomy" {% if theme == 'gastronomy' %}selected{% endif %}>Гастрономия</option>
+                </select>
+            </label>
+            <label class="excursion-only">
+                <select name="language">
+                    <option value="" {% if not language %}selected{% endif %}>Любой язык</option>
+                    <option value="ru" {% if language == 'ru' %}selected{% endif %}>Русский</option>
+                    <option value="en" {% if language == 'en' %}selected{% endif %}>Английский</option>
+                    <option value="fr" {% if language == 'fr' %}selected{% endif %}>Французский</option>
+                </select>
+            </label>
+        </div>
+        <button type="submit" class="btn">Найти</button>
+    </form>
+    {% if search_performed %}
+    <p>Поиск: Откуда: {{ from_city }}, Куда: {{ to_city }}, Дата: {{ depart_date }}, Путешественники: {{ travelers }}</p>
+    <p>Фильтры: Прямые рейсы: {{ direct_flights|yesno:"Да,Нет" }}, Бюджет: {{ budget|default:"Любой" }}, Класс: {{ flight_class|default:"Любой" }}, Жилье: {{ accommodation|default:"Любое" }}, Тип экскурсии: {{ excursion_type|default:"Любой" }}, Тематика: {{ theme|default:"Любая" }}, Язык: {{ language|default:"Любой" }}</p>
+    {% endif %}
+    <section class="destinations">
+        <h2>Популярные направления</h2>
+        <div class="destinations-grid">
+            {% for destination in destinations %}
+            <div class="destination-card">
+                <img src="{{ destination.image.url }}" alt="{{ destination.name }}">
+                <h3>{{ destination.name }}</h3>
+                <p>{{ destination.description }}</p>
+                <p class="price">от {{ destination.price }} ₽</p>
+            </div>
+            {% empty %}
+            <p>Направления пока не добавлены.</p>
+            {% endfor %}
+        </div>
+    </section>
+</body>
+</html>

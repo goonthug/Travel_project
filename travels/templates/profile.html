@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="auth-links">
+        {% if user.is_authenticated %}
+        <p>Привет, {{ user.username }}!
+            <a href="{% url 'travels:profile' %}">Личный кабинет</a> |
+            <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Выйти</button>
+            </form>
+        </p>
+        {% else %}
+        <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
+        {% endif %}
+    </div>
+    <h1>Личный кабинет</h1>
+    <p>Пользователь: {{ user.username }}</p>
+    <h2>Ваши бронирования</h2>
+    <section class="bookings">
+        {% for booking in bookings %}
+        <div class="booking-card">
+            {% if booking.content_type.model == 'flight' %}
+            <h3>{{ booking.content_object.airline }}: {{ booking.content_object.from_city }} → {{ booking.content_object.to_city }}</h3>
+            <p>Вылет: {{ booking.content_object.departure_time|date:"d.m.Y H:i" }}</p>
+            <p>Прибытие: {{ booking.content_object.arrival_time|date:"d.m.Y H:i" }}</p>
+            {% elif booking.content_type.model == 'hotel' %}
+            <h3>{{ booking.content_object.name }}</h3>
+            <p>Город: {{ booking.content_object.city }}</p>
+            <p>Тип: {{ booking.content_object.get_accommodation_type_display }}</p>
+            {% elif booking.content_type.model == 'excursion' %}
+            <h3>{{ booking.content_object.name }}</h3>
+            <p>Город: {{ booking.content_object.city }}</p>
+            <p>Дата: {{ booking.content_object.schedule|date:"d.m.Y H:i" }}</p>
+            {% endif %}
+            <p>Участники: {{ booking.participants }}</p>
+            <p>Итоговая цена: {{ booking.total_price }} ₽</p>
+        </div>
+        {% empty %}
+        <p>Бронирования отсутствуют.</p>
+        {% endfor %}
+    </section>
+    <a href="{% url 'travels:index' %}" class="btn">На главную</a>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение бронирования</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="auth-links">
+        {% if user.is_authenticated %}
+        <p>Привет, {{ user.username }}!
+            <a href="{% url 'travels:profile' %}">Личный кабинет</a> |
+            <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Выйти</button>
+            </form>
+        </p>
+        {% else %}
+        <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
+        {% endif %}
+    </div>
+    <h1>Бронирование подтверждено</h1>
+    <div class="booking-confirmation">
+        {% if item_type == 'flight' %}
+        <h3>{{ item.airline }}: {{ item.from_city }} → {{ item.to_city }}</h3>
+        <p>Вылет: {{ item.departure_time|date:"d.m.Y H:i" }}</p>
+        <p>Прибытие: {{ item.arrival_time|date:"d.m.Y H:i" }}</p>
+        {% elif item_type == 'hotel' %}
+        <h3>{{ item.name }}</h3>
+        <p>Город: {{ item.city }}</p>
+        <p>Тип: {{ item.get_accommodation_type_display }}</p>
+        {% elif item_type == 'excursion' %}
+        <h3>{{ item.name }}</h3>
+        <p>Город: {{ item.city }}</p>
+        <p>Дата: {{ item.schedule|date:"d.m.Y H:i" }}</p>
+        {% endif %}
+        <p>Участники: {{ participants }}</p>
+        <p>Итоговая цена: {{ total_price }} ₽</p>
+        <a href="{% url 'travels:profile' %}" class="btn">Перейти в личный кабинет</a>
+        <a href="{% url 'travels:'|add:item_type|add:'s' %}" class="btn">Вернуться к {{ item_type|title }}ам</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,323 @@
+.destinations {
+    max-width: 800px;
+    margin: 40px auto;
+    text-align: center;
+}
+.destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.destination-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+.destination-card:hover {
+    transform: translateY(-5px);
+}
+.destination-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+.destination-card h3 {
+    margin: 10px;
+    color: #2b6cb0;
+}
+.destination-card p {
+    margin: 0 10px 10px;
+    color: #555;
+}
+.price {
+    font-weight: bold;
+    color: #38a169;
+    margin-bottom: 15px;
+}
+@media (max-width: 600px) {
+    .destinations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+Стили для календаря цен (сетка на 7 дней) и карточек рейсов
+.calendar {
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: center;
+}
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+.calendar-day {
+    padding: 10px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.calendar-day span {
+    display: block;
+    font-size: 14px;
+}
+.flights {
+    max-width: 800px;
+    margin: 20px auto;
+}
+.flight-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.flight-card h3 {
+    margin: 0 0 10px;
+    color: #2b6cb0;
+}
+.flight-card p {
+    margin: 5px 0;
+    color: #555;
+}
+.flight-card .price {
+    font-weight: bold;
+    color: #38a169;
+}
+@media (max-width: 600px) {
+    .calendar-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+Стили для карты и карточек отелей
+.map {
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: center;
+}
+.hotels {
+    max-width: 800px;
+    margin: 20px auto;
+}
+.hotel-card {
+    display: flex;
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.hotel-image {
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 15px;
+}
+.hotel-card h3 {
+    margin: 0 0 10px;
+    color: #2b6cb0;
+}
+.hotel-card p {
+    margin: 5px 0;
+    color: #555;
+}
+.hotel-card .price {
+    font-weight: bold;
+    color: #38a169;
+}
+@media (max-width: 600px) {
+    .hotel-card {
+        flex-direction: column;
+    }
+    .hotel-image {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+.search-tabs {
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: center;
+}
+.search-tabs label {
+    margin: 0 15px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.search-tabs input[type="radio"] {
+    margin-right: 5px;
+}
+.form-filters label.flight-only,
+.form-filters label.hotel-only {
+    display: inline-block;
+}
+
+.excursions {
+    max-width: 800px;
+    margin: 20px auto;
+}
+.excursion-card {
+    display: flex;
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.excursion-image {
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 15px;
+}
+.excursion-card h3 {
+    margin: 0 0 10px;
+    color: #2b6cb0;
+}
+.excursion-card p {
+    margin: 5px 0;
+    color: #555;
+}
+.excursion-card .price {
+    font-weight: bold;
+    color: #38a169;
+}
+.excursion-form {
+    margin-top: 10px;
+}
+.excursion-form select, .excursion-form input {
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+@media (max-width: 600px) {
+    .excursion-card {
+        flex-direction: column;
+    }
+    .excursion-image {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+.booking-confirmation {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.booking-confirmation p {
+    margin: 5px 0;
+    color: #555;
+}
+.bookings {
+    max-width: 800px;
+    margin: 20px auto;
+}
+.booking-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.booking-card h3 {
+    margin: 0 0 10px;
+    color: #2b6cb0;
+}
+.booking-card p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.auth-links {
+    max-width: 800px;
+    margin: 10px auto;
+    text-align: right;
+}
+.auth-links a {
+    margin-left: 10px;
+    color: #2b6cb0;
+    text-decoration: none;
+}
+.auth-links a:hover {
+    text-decoration: underline;
+}
+
+.logout-form {
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.logout-form-inline {
+    display: inline;
+}
+.link-button {
+    background: none;
+    border: none;
+    color: #2b6cb0;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    margin-left: 10px;
+}
+.link-button:hover {
+    text-decoration: underline;
+}
+
+.flight-card, .hotel-card {
+    display: flex;
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.hotel-image {
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 15px;
+}
+.flight-card h3, .hotel-card h3 {
+    margin: 0 0 10px;
+    color: #2b6cb0;
+}
+.flight-card p, .hotel-card p {
+    margin: 5px 0;
+    color: #555;
+}
+.flight-card .price, .hotel-card .price {
+    font-weight: bold;
+    color: #38a169;
+}
+.flight-form, .hotel-form {
+    margin-top: 10px;
+}
+.flight-form select, .hotel-form select, .flight-form input, .hotel-form input {
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+@media (max-width: 600px) {
+    .flight-card, .hotel-card {
+        flex-direction: column;
+    }
+    .hotel-image {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}

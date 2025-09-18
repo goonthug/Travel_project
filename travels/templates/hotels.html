@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск отелей</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="auth-links">
+        {% if user.is_authenticated %}
+        <p>Привет, {{ user.username }}!
+            <a href="{% url 'travels:profile' %}">Личный кабинет</a> |
+            <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Выйти</button>
+            </form>
+        </p>
+        {% else %}
+        <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
+        {% endif %}
+    </div>
+    <h1>Поиск отелей</h1>
+    <form method="GET" action="{% url 'travels:hotels' %}" class="search-form">
+        <div class="form-group">
+            <label for="to_city">Город</label>
+            <input type="text" id="to_city" name="to_city" value="{{ city }}" placeholder="Город назначения" required>
+        </div>
+        <div class="form-group">
+            <label for="depart_date">Дата</label>
+            <input type="date" id="depart_date" name="depart_date" value="{{ depart_date }}" required>
+        </div>
+        <div class="form-group">
+            <label for="travelers">Гости</label>
+            <input type="number" id="travelers" name="travelers" value="{{ travelers }}" min="1" required>
+        </div>
+        <div class="form-filters">
+            <label>
+                <select name="accommodation">
+                    <option value="" {% if not accommodation %}selected{% endif %}>Любое жилье</option>
+                    <option value="hotel" {% if accommodation == 'hotel' %}selected{% endif %}>Отель</option>
+                    <option value="hostel" {% if accommodation == 'hostel' %}selected{% endif %}>Хостел</option>
+                    <option value="apartment" {% if accommodation == 'apartment' %}selected{% endif %}>Апартаменты</option>
+                </select>
+            </label>
+        </div>
+        <button type="submit" class="btn">Найти</button>
+    </form>
+    <section class="hotels">
+        <h2>Результаты поиска</h2>
+        {% for hotel in hotels %}
+        <div class="hotel-card">
+            <img src="{{ hotel.image.url }}" alt="{{ hotel.name }}" class="hotel-image">
+            <div>
+                <h3>{{ hotel.name }}</h3>
+                <p>Город: {{ hotel.city }}</p>
+                <p>Тип: {{ hotel.get_accommodation_type_display }}</p>
+                <p>Рейтинг: {{ hotel.rating }}/5</p>
+                <p class="price">Цена за ночь: {{ hotel.price_per_night }} ₽</p>
+                <form method="POST" action="{% url 'travels:hotels' %}" class="hotel-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="hotel_id" value="{{ hotel.id }}">
+                    <select name="participants">
+                        {% for i in "123456789" %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn">Забронировать</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <p>Отели не найдены.</p>
+        {% endfor %}
+    </section>
+</body>
+</html>

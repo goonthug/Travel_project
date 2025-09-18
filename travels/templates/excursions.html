@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск экскурсий</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <h1>Поиск экскурсий</h1>
+    <form method="GET" action="{% url 'travels:excursions' %}" class="search-form">
+        <div class="form-group">
+            <label for="to_city">Город</label>
+            <input type="text" id="to_city" name="to_city" value="{{ city }}" placeholder="Город назначения" required>
+        </div>
+        <div class="form-group">
+            <label for="depart_date">Дата</label>
+            <input type="date" id="depart_date" name="depart_date" value="{{ depart_date }}" required>
+        </div>
+        <div class="form-group">
+            <label for="travelers">Участники</label>
+            <input type="number" id="travelers" name="travelers" value="{{ travelers }}" min="1" required>
+        </div>
+        <div class="form-filters">
+            <label>
+                <select name="excursion_type">
+                    <option value="" {% if not excursion_type %}selected{% endif %}>Любой тип</option>
+                    <option value="group" {% if excursion_type == 'group' %}selected{% endif %}>Групповая</option>
+                    <option value="individual" {% if excursion_type == 'individual' %}selected{% endif %}>Индивидуальная</option>
+                </select>
+            </label>
+            <label>
+                <select name="theme">
+                    <option value="" {% if not theme %}selected{% endif %}>Любая тематика</option>
+                    <option value="history" {% if theme == 'history' %}selected{% endif %}>История</option>
+                    <option value="nature" {% if theme == 'nature' %}selected{% endif %}>Природа</option>
+                    <option value="gastronomy" {% if theme == 'gastronomy' %}selected{% endif %}>Гастрономия</option>
+                </select>
+            </label>
+            <label>
+                <select name="language">
+                    <option value="" {% if not language %}selected{% endif %}>Любой язык</option>
+                    <option value="ru" {% if language == 'ru' %}selected{% endif %}>Русский</option>
+                    <option value="en" {% if language == 'en' %}selected{% endif %}>Английский</option>
+                    <option value="fr" {% if language == 'fr' %}selected{% endif %}>Французский</option>
+                </select>
+            </label>
+        </div>
+        <button type="submit" class="btn">Найти</button>
+    </form>
+    <section class="excursions">
+        <h2>Результаты поиска</h2>
+        {% for excursion in excursions %}
+        <div class="excursion-card">
+            <img src="{{ excursion.image.url }}" alt="{{ excursion.name }}" class="excursion-image">
+            <div>
+                <h3>{{ excursion.name }}</h3>
+                <p>Город: {{ excursion.city }}</p>
+                <p>Тип: {{ excursion.get_type_display }}</p>
+                <p>Тематика: {{ excursion.get_theme_display }}</p>
+                <p>Язык: {{ excursion.get_language_display }}</p>
+                <p>Рейтинг: {{ excursion.rating }}/5</p>
+                <p>Длительность: {{ excursion.duration }}</p>
+                <p>Дата: {{ excursion.schedule|date:"d.m.Y H:i" }}</p>
+                <p class="price">Цена: {{ excursion.price }} ₽</p>
+                <form method="POST" action="{% url 'travels:excursions' %}" class="excursion-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="excursion_id" value="{{ excursion.id }}">
+                    <select name="participants">
+                        {% for i in "123456789" %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn">Забронировать</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <p>Экскурсии не найдены.</p>
+        {% endfor %}
+    </section>
+</body>
+</html>

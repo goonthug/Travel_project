@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск рейсов</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="auth-links">
+        {% if user.is_authenticated %}
+        <p>Привет, {{ user.username }}!
+            <a href="{% url 'travels:profile' %}">Личный кабинет</a> |
+            <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Выйти</button>
+            </form>
+        </p>
+        {% else %}
+        <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
+        {% endif %}
+    </div>
+    <h1>Поиск рейсов</h1>
+    <form method="GET" action="{% url 'travels:flights' %}" class="search-form">
+        <div class="form-group">
+            <label for="from_city">Откуда</label>
+            <input type="text" id="from_city" name="from_city" value="{{ from_city }}" placeholder="Город отправления" required>
+        </div>
+        <div class="form-group">
+            <label for="to_city">Куда</label>
+            <input type="text" id="to_city" name="to_city" value="{{ to_city }}" placeholder="Город назначения" required>
+        </div>
+        <div class="form-group">
+            <label for="depart_date">Дата</label>
+            <input type="date" id="depart_date" name="depart_date" value="{{ depart_date }}" required>
+        </div>
+        <div class="form-group">
+            <label for="travelers">Путешественники</label>
+            <input type="number" id="travelers" name="travelers" value="{{ travelers|default:1 }}" min="1" required>
+        </div>
+        <div class="form-filters">
+            <label><input type="checkbox" name="direct_flights" {% if direct_flights %}checked{% endif %}> Прямые рейсы</label>
+            <label>
+                <select name="budget">
+                    <option value="" {% if not budget %}selected{% endif %}>Любой бюджет</option>
+                    <option value="low" {% if budget == 'low' %}selected{% endif %}>Эконом</option>
+                    <option value="medium" {% if budget == 'medium' %}selected{% endif %}>Средний</option>
+                    <option value="high" {% if budget == 'high' %}selected{% endif %}>Премиум</option>
+                </select>
+            </label>
+        </div>
+        <button type="submit" class="btn">Найти</button>
+    </form>
+    <section class="flights">
+        <h2>Результаты поиска</h2>
+        {% for flight in flights %}
+        <div class="flight-card">
+            <h3>{{ flight.airline }}</h3>
+            <p>Откуда: {{ flight.from_city }}</p>
+            <p>Куда: {{ flight.to_city }}</p>
+            <p>Вылет: {{ flight.departure_time|date:"d.m.Y H:i" }}</p>
+            <p>Прибытие: {{ flight.arrival_time|date:"d.m.Y H:i" }}</p>
+            <p>Длительность: {{ flight.duration }}</p>
+            <p>Прямой: {{ flight.direct|yesno:"Да,Нет" }}</p>
+            <p class="price">Цена: {{ flight.price }} ₽</p>
+            <form method="POST" action="{% url 'travels:flights' %}" class="flight-form">
+                {% csrf_token %}
+                <input type="hidden" name="flight_id" value="{{ flight.id }}">
+                <select name="participants">
+                    {% for i in "123456789" %}
+                    <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Забронировать</button>
+            </form>
+        </div>
+        {% empty %}
+        <p>Рейсы не найдены.</p>
+        {% endfor %}
+    </section>
+    {% if calendar_prices %}
+    <section class="calendar">
+        <h2>Цены на соседние даты</h2>
+        <div class="calendar-grid">
+            {% for price in calendar_prices %}
+            <div class="calendar-item">
+                <p>{{ price.date|date:"d.m.Y" }}</p>
+                <p>{{ price.price }} ₽</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</body>
+</html>
