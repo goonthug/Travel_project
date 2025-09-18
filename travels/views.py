@@ -9,19 +9,29 @@ from datetime import timedelta
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.core.paginator import Paginator
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import serializers
+
+# Serializers
+class FlightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Flight
+        fields = ['id', 'airline', 'from_city', 'to_city', 'departure_time', 'arrival_time', 'price', 'duration', 'direct']
+
+class HotelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hotel
+        fields = ['id', 'name', 'city', 'rating', 'price_per_night', 'accommodation_type']
+
+class ExcursionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Excursion
+        fields = ['id', 'name', 'city', 'type', 'theme', 'price', 'duration', 'language', 'schedule']
 
 def index(request):
     destinations = Destination.objects.all()[:3]
     context = {
-        'from_city': request.GET.get('from_city', ''),
-        'to_city': request.GET.get('to_city', ''),
-        'depart_date': request.GET.get('depart_date', ''),
-        'travelers': request.GET.get('travelers', 1),
-        'direct_flights': request.GET.get('direct_flights', False),
-        'budget': request.GET.get('budget', ''),
-        'flight_class': request.GET.get('flight_class', ''),
-        'accommodation': request.GET.get('accommodation', ''),
-        'search_performed': 'from_city' in request.GET,
         'destinations': destinations
     }
     return render(request, 'index.html', context)
@@ -200,16 +210,13 @@ def profile(request):
     booking_type = request.GET.get('booking_type', '')
     sort_by = request.GET.get('sort_by', 'created_at')
 
-    # Filter by booking type
     if booking_type:
         bookings = bookings.filter(content_type=ContentType.objects.get(model=booking_type))
 
-    # Sort bookings
     if sort_by in ['created_at', '-created_at', 'total_price', '-total_price']:
         bookings = bookings.order_by(sort_by)
 
-    # Pagination
-    paginator = Paginator(bookings, 5)  # 5 bookings per page
+    paginator = Paginator(bookings, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -231,3 +238,73 @@ def cancel_booking(request, booking_id):
             messages.error(request, 'Бронирование не найдено или вы не имеете к нему доступа.')
         return redirect('travels:profile')
     return redirect('travels:profile')
+
+@api_view(['GET'])
+def search_flights(request):
+    from_city = request.GET.get('from_city', '')
+    to_city = request.GET.get('to_city', '')
+    depart_date = request.GET.get('depart_date', '')
+    direct_flights = request.GET.get('direct_flights', 'false').lower() == 'true'
+    budget = request.GET.get('budget', '')
+    flights = Flight.objects.all()
+
+    if from_city:
+        flights = flights.filter(from_city__icontains=from_city)
+    if to_city:
+        flights = flights.filter(to_city__icontains=to_city)
+    if depart_date:
+        flights = flights.filter(departure_time__date=depart_date)
+    if direct_flights:
+        flights = flights.filter(direct=True)
+    if budget:
+        if budget == 'low':
+            flights = flights.filter(price__lte=20000)
+        elif budget == 'medium':
+            flights = flights.filter(price__range=(20000, 40000))
+        elif budget == 'high':
+            flights = flights.filter(price__gte=40000)
+
+    serializer = FlightSerializer(flights, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def search_hotels(request):
+    city = request.GET.get('city', '')
+    accommodation = request.GET.get('accommodation', '')
+    hotels = Hotel.objects.all()
+
+    if city:
+        hotels = hotels.filter(city__icontains=city)
+    if accommodation:
+        hotels = hotels.filter(accommodation_type=accommodation)
+
+    serializer = HotelSerializer(hotels, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def search_excursions(request):
+    city = request.GET.get('city', '')
+    excursion_type = request.GET.get('excursion_type', '')
+    theme = request.GET.get('theme', '')
+    language = request.GET.get('language', '')
+    excursions = Excursion.objects.all()
+
+    if city:
+        excursions = excursions.filter(city__icontains=city)
+    if excursion_type:
+        excursions = excursions.filter(type=excursion_type)
+    if theme:
+        excursions = excursions.filter(theme=theme)
+    if language:
+        excursions = excursions.filter(language=language)
+
+    serializer = ExcursionSerializer(excursions, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def get_cities(request):
+    cities = list(set(Flight.objects.values_list('from_city', flat=True)) |
+                  set(Flight.objects.values_list('to_city', flat=True)) |
+                  set(Hotel.objects.values_list('city', flat=True)) |
+                  set(Excursion.objects.values_list('city', flat=True)))
+    return Response(cities)
