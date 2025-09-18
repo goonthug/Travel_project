@@ -12,6 +12,7 @@ from django.core.paginator import Paginator
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import serializers
+from django.db.models import Q
 
 # Serializers
 class FlightSerializer(serializers.ModelSerializer):
@@ -42,22 +43,25 @@ def flights(request):
             return redirect('travels:login')
         flight_id = request.POST.get('flight_id')
         participants = int(request.POST.get('participants', 1))
-        flight = Flight.objects.get(id=flight_id)
-        total_price = flight.price * participants
-        Booking.objects.create(
-            user=request.user,
-            content_type=ContentType.objects.get_for_model(Flight),
-            object_id=flight.id,
-            participants=participants,
-            total_price=total_price
-        )
-        return render(request, 'booking_confirmation.html', {
-            'item': flight,
-            'item_type': 'flight',
-            'participants': participants,
-            'total_price': total_price
-        })
-
+        try:
+            flight = Flight.objects.get(id=flight_id)
+            total_price = flight.price * participants
+            Booking.objects.create(
+                user=request.user,
+                content_type=ContentType.objects.get_for_model(Flight),
+                object_id=flight.id,
+                participants=participants,
+                total_price=total_price
+            )
+            return render(request, 'booking_confirmation.html', {
+                'item': flight,
+                'item_type': 'flight',
+                'participants': participants,
+                'total_price': total_price
+            })
+        except Flight.DoesNotExist:
+            messages.error(request, 'Рейс не найден')
+            return redirect('travels:flights')
     from_city = request.GET.get('from_city', '')
     to_city = request.GET.get('to_city', '')
     depart_date = request.GET.get('depart_date', '')
@@ -123,7 +127,7 @@ def hotels(request):
             'total_price': total_price
         })
 
-    city = request.GET.get('to_city', '')
+    city = request.GET.get('city', '')
     depart_date = request.GET.get('depart_date', '')
     travelers = request.GET.get('travelers', 1)
     accommodation = request.GET.get('accommodation', '')
@@ -165,7 +169,7 @@ def excursions(request):
             'total_price': total_price
         })
 
-    city = request.GET.get('to_city', '')
+    city = request.GET.get('city', '')
     depart_date = request.GET.get('depart_date', '')
     travelers = request.GET.get('travelers', 1)
     excursion_type = request.GET.get('excursion_type', '')
@@ -209,13 +213,46 @@ def profile(request):
     bookings = Booking.objects.filter(user=request.user)
     booking_type = request.GET.get('booking_type', '')
     sort_by = request.GET.get('sort_by', 'created_at')
+    search = request.GET.get('search', '')
 
+    # Filter by booking type
     if booking_type:
         bookings = bookings.filter(content_type=ContentType.objects.get(model=booking_type))
 
+    # Search
+    if search:
+        flight_ct = ContentType.objects.get_for_model(Flight)
+        hotel_ct = ContentType.objects.get_for_model(Hotel)
+        excursion_ct = ContentType.objects.get_for_model(Excursion)
+
+        # Filter by related models and get booking IDs
+        flight_ids = Flight.objects.filter(
+            Q(from_city__icontains=search) |
+            Q(to_city__icontains=search) |
+            Q(airline__icontains=search)
+        ).values_list('id', flat=True)
+        hotel_ids = Hotel.objects.filter(
+            Q(name__icontains=search) |
+            Q(city__icontains=search)
+        ).values_list('id', flat=True)
+        excursion_ids = Excursion.objects.filter(
+            Q(name__icontains=search) |
+            Q(city__icontains=search)
+        ).values_list('id', flat=True)
+
+        # Filter bookings by object_id and content_type
+        search_bookings = bookings.filter(
+            Q(content_type=flight_ct, object_id__in=flight_ids) |
+            Q(content_type=hotel_ct, object_id__in=hotel_ids) |
+            Q(content_type=excursion_ct, object_id__in=excursion_ids)
+        )
+        bookings = search_bookings.distinct()
+
+    # Sort bookings
     if sort_by in ['created_at', '-created_at', 'total_price', '-total_price']:
         bookings = bookings.order_by(sort_by)
 
+    # Pagination
     paginator = Paginator(bookings, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -223,7 +260,8 @@ def profile(request):
     context = {
         'page_obj': page_obj,
         'booking_type': booking_type,
-        'sort_by': sort_by
+        'sort_by': sort_by,
+        'search': search
     }
     return render(request, 'profile.html', context)
 
