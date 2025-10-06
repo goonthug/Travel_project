@@ -111,22 +111,25 @@ def hotels(request):
             return redirect('travels:login')
         hotel_id = request.POST.get('hotel_id')
         participants = int(request.POST.get('participants', 1))
-        hotel = Hotel.objects.get(id=hotel_id)
-        total_price = hotel.price_per_night * participants
-        Booking.objects.create(
-            user=request.user,
-            content_type=ContentType.objects.get_for_model(Hotel),
-            object_id=hotel.id,
-            participants=participants,
-            total_price=total_price
-        )
-        return render(request, 'booking_confirmation.html', {
-            'item': hotel,
-            'item_type': 'hotel',
-            'participants': participants,
-            'total_price': total_price
-        })
-
+        try:
+            hotel = Hotel.objects.get(id=hotel_id)
+            total_price = hotel.price_per_night * participants
+            Booking.objects.create(
+                user=request.user,
+                content_type=ContentType.objects.get_for_model(Hotel),
+                object_id=hotel.id,
+                participants=participants,
+                total_price=total_price
+            )
+            return render(request, 'booking_confirmation.html', {
+                'item': hotel,
+                'item_type': 'hotel',
+                'participants': participants,
+                'total_price': total_price
+            })
+        except Hotel.DoesNotExist:
+            messages.error(request, 'Отель не найден')
+            return redirect('travels:hotels')
     city = request.GET.get('city', '')
     depart_date = request.GET.get('depart_date', '')
     travelers = request.GET.get('travelers', 1)
@@ -153,22 +156,25 @@ def excursions(request):
             return redirect('travels:login')
         excursion_id = request.POST.get('excursion_id')
         participants = int(request.POST.get('participants', 1))
-        excursion = Excursion.objects.get(id=excursion_id)
-        total_price = excursion.price * participants
-        Booking.objects.create(
-            user=request.user,
-            content_type=ContentType.objects.get_for_model(Excursion),
-            object_id=excursion.id,
-            participants=participants,
-            total_price=total_price
-        )
-        return render(request, 'booking_confirmation.html', {
-            'item': excursion,
-            'item_type': 'excursion',
-            'participants': participants,
-            'total_price': total_price
-        })
-
+        try:
+            excursion = Excursion.objects.get(id=excursion_id)
+            total_price = excursion.price * participants
+            Booking.objects.create(
+                user=request.user,
+                content_type=ContentType.objects.get_for_model(Excursion),
+                object_id=excursion.id,
+                participants=participants,
+                total_price=total_price
+            )
+            return render(request, 'booking_confirmation.html', {
+                'item': excursion,
+                'item_type': 'excursion',
+                'participants': participants,
+                'total_price': total_price
+            })
+        except Excursion.DoesNotExist:
+            messages.error(request, 'Экскурсия не найдена')
+            return redirect('travels:excursions')
     city = request.GET.get('city', '')
     depart_date = request.GET.get('depart_date', '')
     travelers = request.GET.get('travelers', 1)

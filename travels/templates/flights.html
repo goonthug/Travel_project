@@ -10,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/utils.js' %}"></script>
 </head>
 <body>
     <div class="auth-links">
@@ -52,34 +53,9 @@
             const directFlights = params.get('direct_flights') === 'true';
             const budget = params.get('budget') || '';
 
-            // Get CSRF token from cookie
-            const getCookie = (name) => {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
-            };
-
             // Check authentication
             useEffect(() => {
-                fetch('/api/get_cities/', { credentials: 'include' })
-                    .then(response => {
-                        setIsAuthenticated(response.ok);
-                        setLoading(false);
-                    })
-                    .catch(err => {
-                        console.error('Auth check error:', err);
-                        setIsAuthenticated(false);
-                        setLoading(false);
-                    });
+                window.utils.checkAuth(setIsAuthenticated, setLoading);
             }, []);
 
             // Fetch flights
@@ -103,7 +79,7 @@
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Flights data:', data); // Debug log
+                        console.log('Flights data:', data);
                         setFlights(data);
                         setLoading(false);
                     })
@@ -157,7 +133,7 @@
                                     <p>{flight.direct ? 'Прямой' : 'С пересадкой'}</p>
                                     {isAuthenticated ? (
                                         <form method="POST" action="/flights/">
-                                            <input type="hidden" name="csrfmiddlewaretoken" value={getCookie('csrftoken')} />
+                                            <input type="hidden" name="csrfmiddlewaretoken" value={window.utils.getCookie('csrftoken')} />
                                             <input type="hidden" name="flight_id" value={flight.id} />
                                             <input type="hidden" name="participants" value={participants} />
                                             <button

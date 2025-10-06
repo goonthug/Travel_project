@@ -523,3 +523,30 @@
 .btn:hover {
     background-color: #1a4971;
 }
+
+.hotels-container, .excursions-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.hotel-card, .excursion-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.hotel-card h3, .excursion-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+.hotel-card p, .excursion-card p {
+    margin: 5px 0;
+}
+
+
+.auth-links { text-align: right; padding: 10px; }
+.logout-form-inline { display: inline; }
+.link-button { background: none; border: none; color: #2563eb; cursor: pointer; }
+.btn { display: block; text-align: center; margin: 20px; padding: 10px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px; }
+.btn:hover { background: #1e40af; }
+

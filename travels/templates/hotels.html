@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поиск отелей</title>
+    <title>Отели</title>
+    {% csrf_token %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script src="https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
@@ -21,58 +27,153 @@
         <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
         {% endif %}
     </div>
-    <h1>Поиск отелей</h1>
-    <form method="GET" action="{% url 'travels:hotels' %}" class="search-form">
-        <div class="form-group">
-            <label for="to_city">Город</label>
-            <input type="text" id="to_city" name="to_city" value="{{ city }}" placeholder="Город назначения" required>
+    <div id="hotels-container">
+        <div class="max-w-4xl mx-auto p-4">
+            <h1 class="text-2xl font-bold mb-4">Отели</h1>
+            <p>Загрузка отелей...</p>
         </div>
-        <div class="form-group">
-            <label for="depart_date">Дата</label>
-            <input type="date" id="depart_date" name="depart_date" value="{{ depart_date }}" required>
-        </div>
-        <div class="form-group">
-            <label for="travelers">Гости</label>
-            <input type="number" id="travelers" name="travelers" value="{{ travelers }}" min="1" required>
-        </div>
-        <div class="form-filters">
-            <label>
-                <select name="accommodation">
-                    <option value="" {% if not accommodation %}selected{% endif %}>Любое жилье</option>
-                    <option value="hotel" {% if accommodation == 'hotel' %}selected{% endif %}>Отель</option>
-                    <option value="hostel" {% if accommodation == 'hostel' %}selected{% endif %}>Хостел</option>
-                    <option value="apartment" {% if accommodation == 'apartment' %}selected{% endif %}>Апартаменты</option>
-                </select>
-            </label>
-        </div>
-        <button type="submit" class="btn">Найти</button>
-    </form>
-    <section class="hotels">
-        <h2>Результаты поиска</h2>
-        {% for hotel in hotels %}
-        <div class="hotel-card">
-            <img src="{{ hotel.image.url }}" alt="{{ hotel.name }}" class="hotel-image">
-            <div>
-                <h3>{{ hotel.name }}</h3>
-                <p>Город: {{ hotel.city }}</p>
-                <p>Тип: {{ hotel.get_accommodation_type_display }}</p>
-                <p>Рейтинг: {{ hotel.rating }}/5</p>
-                <p class="price">Цена за ночь: {{ hotel.price_per_night }} ₽</p>
-                <form method="POST" action="{% url 'travels:hotels' %}" class="hotel-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="hotel_id" value="{{ hotel.id }}">
-                    <select name="participants">
-                        {% for i in "123456789" %}
-                        <option value="{{ i }}">{{ i }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="btn">Забронировать</button>
-                </form>
-            </div>
-        </div>
-        {% empty %}
-        <p>Отели не найдены.</p>
-        {% endfor %}
-    </section>
+    </div>
+    <a href="{% url 'travels:index' %}" class="btn">На главную</a>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function Hotels() {
+            const [hotels, setHotels] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [participants, setParticipants] = useState(1);
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [currentPage, setCurrentPage] = useState(1);
+            const hotelsPerPage = 5;
+
+            // Parse URL parameters
+            const params = new URLSearchParams(window.location.search);
+            const city = params.get('city') || '';
+            const accommodation = params.get('accommodation') || '';
+            const departDate = params.get('depart_date') || '';
+
+            // Check authentication
+            useEffect(() => {
+                fetch('/api/get_cities/', { credentials: 'include' })
+                    .then(response => {
+                        if (response.ok) setIsAuthenticated(true);
+                        else setIsAuthenticated(false);
+                    })
+                    .catch(() => setIsAuthenticated(false));
+            }, []);
+
+            // Fetch hotels
+            useEffect(() => {
+                setLoading(true);
+                const query = new URLSearchParams({
+                    city: city,
+                    accommodation: accommodation,
+                    depart_date: departDate
+                }).toString();
+                fetch(`/api/search_hotels/?${query}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Ошибка загрузки отелей');
+                        return response.json();
+                    })
+                    .then(data => {
+                        setHotels(data);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        setError(err.message);
+                        setLoading(false);
+                    });
+            }, [city, accommodation, departDate]);
+
+            // Handle booking
+            const handleBooking = (hotelId) => {
+                if (!isAuthenticated) {
+                    window.location.href = '/login/';
+                    return;
+                }
+                if (participants < 1) {
+                    alert('Количество путешественников должно быть больше 0');
+                    return;
+                }
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/hotels/';
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.content : '';
+                form.innerHTML = `
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                    <input type="hidden" name="hotel_id" value="${hotelId}">
+                    <input type="hidden" name="participants" value="${participants}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            };
+
+            // Pagination
+            const indexOfLastHotel = currentPage * hotelsPerPage;
+            const indexOfFirstHotel = indexOfLastHotel - hotelsPerPage;
+            const currentHotels = hotels.slice(indexOfFirstHotel, indexOfLastHotel);
+            const totalPages = Math.ceil(hotels.length / hotelsPerPage);
+
+            const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+            return (
+                <div className="max-w-4xl mx-auto p-4">
+                    <h1 className="text-2xl font-bold mb-4">Отели</h1>
+                    {loading && <p>Загрузка...</p>}
+                    {error && <p className="text-red-500">{error}</p>}
+                    {!loading && !error && (
+                        <div>
+                            <div className="mb-4">
+                                <label className="block mb-1">Путешественники</label>
+                                <input
+                                    type="number"
+                                    value={participants}
+                                    onChange={(e) => setParticipants(parseInt(e.target.value) || 1)}
+                                    className="w-full p-2 border rounded"
+                                    min="1"
+                                />
+                            </div>
+                            {currentHotels.length === 0 ? (
+                                <p>Отели не найдены. Попробуйте изменить параметры поиска.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {currentHotels.map(hotel => (
+                                        <div key={hotel.id} className="border rounded p-4">
+                                            <h3 className="text-lg font-semibold">{hotel.name} ({hotel.city})</h3>
+                                            <p>Тип: {hotel.accommodation_type}</p>
+                                            <p>Рейтинг: {hotel.rating}</p>
+                                            <p>Цена за ночь: {hotel.price_per_night} ₽</p>
+                                            <button
+                                                onClick={() => handleBooking(hotel.id)}
+                                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2"
+                                            >
+                                                Забронировать
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {totalPages > 1 && (
+                                <div className="flex justify-center gap-2 mt-4">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => paginate(page)}
+                                            className={`px-4 py-2 rounded ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<Hotels />, document.getElementById('hotels-container'));
+    </script>
 </body>
 </html>

@@ -3,82 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поиск экскурсий</title>
+    <title>Экскурсии</title>
+    {% csrf_token %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script src="https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h1>Поиск экскурсий</h1>
-    <form method="GET" action="{% url 'travels:excursions' %}" class="search-form">
-        <div class="form-group">
-            <label for="to_city">Город</label>
-            <input type="text" id="to_city" name="to_city" value="{{ city }}" placeholder="Город назначения" required>
+    <div class="auth-links">
+        {% if user.is_authenticated %}
+        <p>Привет, {{ user.username }}!
+            <a href="{% url 'travels:profile' %}">Личный кабинет</a> |
+            <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
+                {% csrf_token %}
+                <button type="submit" class="link-button">Выйти</button>
+            </form>
+        </p>
+        {% else %}
+        <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
+        {% endif %}
+    </div>
+    <div id="excursions-container">
+        <div class="max-w-4xl mx-auto p-4">
+            <h1 class="text-2xl font-bold mb-4">Экскурсии</h1>
+            <p>Загрузка экскурсий...</p>
         </div>
-        <div class="form-group">
-            <label for="depart_date">Дата</label>
-            <input type="date" id="depart_date" name="depart_date" value="{{ depart_date }}" required>
-        </div>
-        <div class="form-group">
-            <label for="travelers">Участники</label>
-            <input type="number" id="travelers" name="travelers" value="{{ travelers }}" min="1" required>
-        </div>
-        <div class="form-filters">
-            <label>
-                <select name="excursion_type">
-                    <option value="" {% if not excursion_type %}selected{% endif %}>Любой тип</option>
-                    <option value="group" {% if excursion_type == 'group' %}selected{% endif %}>Групповая</option>
-                    <option value="individual" {% if excursion_type == 'individual' %}selected{% endif %}>Индивидуальная</option>
-                </select>
-            </label>
-            <label>
-                <select name="theme">
-                    <option value="" {% if not theme %}selected{% endif %}>Любая тематика</option>
-                    <option value="history" {% if theme == 'history' %}selected{% endif %}>История</option>
-                    <option value="nature" {% if theme == 'nature' %}selected{% endif %}>Природа</option>
-                    <option value="gastronomy" {% if theme == 'gastronomy' %}selected{% endif %}>Гастрономия</option>
-                </select>
-            </label>
-            <label>
-                <select name="language">
-                    <option value="" {% if not language %}selected{% endif %}>Любой язык</option>
-                    <option value="ru" {% if language == 'ru' %}selected{% endif %}>Русский</option>
-                    <option value="en" {% if language == 'en' %}selected{% endif %}>Английский</option>
-                    <option value="fr" {% if language == 'fr' %}selected{% endif %}>Французский</option>
-                </select>
-            </label>
-        </div>
-        <button type="submit" class="btn">Найти</button>
-    </form>
-    <section class="excursions">
-        <h2>Результаты поиска</h2>
-        {% for excursion in excursions %}
-        <div class="excursion-card">
-            <img src="{{ excursion.image.url }}" alt="{{ excursion.name }}" class="excursion-image">
-            <div>
-                <h3>{{ excursion.name }}</h3>
-                <p>Город: {{ excursion.city }}</p>
-                <p>Тип: {{ excursion.get_type_display }}</p>
-                <p>Тематика: {{ excursion.get_theme_display }}</p>
-                <p>Язык: {{ excursion.get_language_display }}</p>
-                <p>Рейтинг: {{ excursion.rating }}/5</p>
-                <p>Длительность: {{ excursion.duration }}</p>
-                <p>Дата: {{ excursion.schedule|date:"d.m.Y H:i" }}</p>
-                <p class="price">Цена: {{ excursion.price }} ₽</p>
-                <form method="POST" action="{% url 'travels:excursions' %}" class="excursion-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="excursion_id" value="{{ excursion.id }}">
-                    <select name="participants">
-                        {% for i in "123456789" %}
-                        <option value="{{ i }}">{{ i }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="btn">Забронировать</button>
-                </form>
-            </div>
-        </div>
-        {% empty %}
-        <p>Экскурсии не найдены.</p>
-        {% endfor %}
-    </section>
+    </div>
+    <a href="{% url 'travels:index' %}" class="btn">На главную</a>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function Excursions() {
+            const [excursions, setExcursions] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [participants, setParticipants] = useState(1);
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [currentPage, setCurrentPage] = useState(1);
+            const excursionsPerPage = 5;
+
+            // Parse URL parameters
+            const params = new URLSearchParams(window.location.search);
+            const city = params.get('city') || '';
+            const excursionType = params.get('excursion_type') || '';
+            const theme = params.get('theme') || '';
+            const language = params.get('language') || '';
+            const departDate = params.get('depart_date') || '';
+
+            // Check authentication
+            useEffect(() => {
+                fetch('/api/get_cities/', { credentials: 'include' })
+                    .then(response => {
+                        if (response.ok) setIsAuthenticated(true);
+                        else setIsAuthenticated(false);
+                    })
+                    .catch(() => setIsAuthenticated(false));
+            }, []);
+
+            // Fetch excursions
+            useEffect(() => {
+                setLoading(true);
+                const query = new URLSearchParams({
+                    city: city,
+                    excursion_type: excursionType,
+                    theme: theme,
+                    language: language,
+                    depart_date: departDate
+                }).toString();
+                fetch(`/api/search_excursions/?${query}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Ошибка загрузки экскурсий');
+                        return response.json();
+                    })
+                    .then(data => {
+                        setExcursions(data);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        setError(err.message);
+                        setLoading(false);
+                    });
+            }, [city, excursionType, theme, language, departDate]);
+
+            // Handle booking
+            const handleBooking = (excursionId) => {
+                if (!isAuthenticated) {
+                    window.location.href = '/login/';
+                    return;
+                }
+                if (participants < 1) {
+                    alert('Количество путешественников должно быть больше 0');
+                    return;
+                }
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/excursions/';
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.content : '';
+                form.innerHTML = `
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                    <input type="hidden" name="excursion_id" value="${excursionId}">
+                    <input type="hidden" name="participants" value="${participants}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            };
+
+            // Pagination
+            const indexOfLastExcursion = currentPage * excursionsPerPage;
+            const indexOfFirstExcursion = indexOfLastExcursion - excursionsPerPage;
+            const currentExcursions = excursions.slice(indexOfFirstExcursion, indexOfLastExcursion);
+            const totalPages = Math.ceil(excursions.length / excursionsPerPage);
+
+            const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+            return (
+                <div className="max-w-4xl mx-auto p-4">
+                    <h1 className="text-2xl font-bold mb-4">Экскурсии</h1>
+                    {loading && <p>Загрузка...</p>}
+                    {error && <p className="text-red-500">{error}</p>}
+                    {!loading && !error && (
+                        <div>
+                            <div className="mb-4">
+                                <label className="block mb-1">Путешественники</label>
+                                <input
+                                    type="number"
+                                    value={participants}
+                                    onChange={(e) => setParticipants(parseInt(e.target.value) || 1)}
+                                    className="w-full p-2 border rounded"
+                                    min="1"
+                                />
+                            </div>
+                            {currentExcursions.length === 0 ? (
+                                <p>Экскурсии не найдены. Попробуйте изменить параметры поиска.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {currentExcursions.map(excursion => (
+                                        <div key={excursion.id} className="border rounded p-4">
+                                            <h3 className="text-lg font-semibold">{excursion.name} ({excursion.city})</h3>
+                                            <p>Тип: {excursion.type}</p>
+                                            <p>Тема: {excursion.theme}</p>
+                                            <p>Язык: {excursion.language}</p>
+                                            <p>Цена: {excursion.price} ₽</p>
+                                            <p>Продолжительность: {excursion.duration}</p>
+                                            <p>Дата: {new Date(excursion.schedule).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                                            <button
+                                                onClick={() => handleBooking(excursion.id)}
+                                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2"
+                                            >
+                                                Забронировать
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {totalPages > 1 && (
+                                <div className="flex justify-center gap-2 mt-4">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => paginate(page)}
+                                            className={`px-4 py-2 rounded ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<Excursions />, document.getElementById('excursions-container'));
+    </script>
 </body>
 </html>
