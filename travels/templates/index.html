@@ -13,144 +13,175 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
-    <div class="auth-links">
-        {% if user.is_authenticated %}
-        <p>Привет, {{ user.username }}!
-            <a href="{% url 'travels:profile' %}">Личный кабинет</a> |
-            <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
-                {% csrf_token %}
-                <button type="submit" class="link-button">Выйти</button>
-            </form>
-        </p>
-        {% else %}
-        <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
-        {% endif %}
-    </div>
-    <div class="max-w-4xl mx-auto p-4">
-        <h1 class="text-3xl font-bold mb-6">Найдите свое путешествие</h1>
-        <div class="tabs">
-            <button class="tab-button active" onclick="openTab('flights')">Рейсы</button>
-            <button class="tab-button" onclick="openTab('hotels')">Отели</button>
-            <button class="tab-button" onclick="openTab('excursions')">Экскурсии</button>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-4 shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center px-4">
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold">TravelEasy</h1>
+            </div>
+            <div class="auth-links flex items-center gap-4">
+                {% if user.is_authenticated %}
+                    <span>Привет, {{ user.username }}!</span>
+                    <a href="{% url 'travels:profile' %}" class="text-blue-200 hover:text-white transition duration-300">Личный кабинет</a>
+                    <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="link-button text-blue-200 hover:text-white transition duration-300">Выйти</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'travels:login' %}" class="text-blue-200 hover:text-white transition duration-300">Войти</a>
+                    <span class="text-blue-200">|</span>
+                    <a href="{% url 'travels:register' %}" class="text-blue-200 hover:text-white transition duration-300">Регистрация</a>
+                {% endif %}
+            </div>
         </div>
-        <div id="flights" class="tab-content active">
-            <form action="{% url 'travels:flights' %}" method="GET" class="space-y-4">
-                <div>
-                    <label class="block mb-1">Откуда</label>
-                    <input type="text" name="from_city" class="w-full p-2 border rounded" required>
-                </div>
-                <div>
-                    <label class="block mb-1">Куда</label>
-                    <input type="text" name="to_city" class="w-full p-2 border rounded" required>
-                </div>
-                <div>
-                    <label class="block mb-1">Дата вылета</label>
-                    <input type="date" name="depart_date" class="w-full p-2 border rounded" required>
-                </div>
-                <div>
-                    <label class="block mb-1">Путешественники</label>
-                    <input type="number" name="travelers" class="w-full p-2 border rounded" min="1" value="1">
-                </div>
-                <div>
-                    <label class="block mb-1">Бюджет</label>
-                    <select name="budget" class="w-full p-2 border rounded">
-                        <option value="">Любой</option>
-                        <option value="low">Низкий</option>
-                        <option value="medium">Средний</option>
-                        <option value="high">Высокий</option>
-                    </select>
-                </div>
-                <div>
-                    <label><input type="checkbox" name="direct_flights"> Только прямые рейсы</label>
-                </div>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Найти</button>
-            </form>
-        </div>
-        <div id="hotels" class="tab-content hidden">
-            <form action="{% url 'travels:hotels' %}" method="GET" class="space-y-4">
-                <div>
-                    <label class="block mb-1">Город</label>
-                    <input type="text" name="city" class="w-full p-2 border rounded" required>
-                </div>
-                <div>
-                    <label class="block mb-1">Тип размещения</label>
-                    <select name="accommodation" class="w-full p-2 border rounded">
-                        <option value="">Любой</option>
-                        <option value="hotel">Отель</option>
-                        <option value="hostel">Хостел</option>
-                        <option value="apartment">Апартаменты</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block mb-1">Дата</label>
-                    <input type="date" name="depart_date" class="w-full p-2 border rounded">
-                </div>
-                <div>
-                    <label class="block mb-1">Путешественники</label>
-                    <input type="number" name="travelers" class="w-full p-2 border rounded" min="1" value="1">
-                </div>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Найти</button>
-            </form>
-        </div>
-        <div id="excursions" class="tab-content hidden">
-            <form action="{% url 'travels:excursions' %}" method="GET" class="space-y-4">
-                <div>
-                    <label class="block mb-1">Город</label>
-                    <input type="text" name="city" class="w-full p-2 border rounded" required>
-                </div>
-                <div>
-                    <label class="block mb-1">Тип экскурсии</label>
-                    <select name="excursion_type" class="w-full p-2 border rounded">
-                        <option value="">Любой</option>
-                        <option value="group">Групповая</option>
-                        <option value="individual">Индивидуальная</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block mb-1">Тема</label>
-                    <select name="theme" class="w-full p-2 border rounded">
-                        <option value="">Любая</option>
-                        <option value="history">История</option>
-                        <option value="culture">Культура</option>
-                        <option value="nature">Природа</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block mb-1">Язык</label>
-                    <select name="language" class="w-full p-2 border rounded">
-                        <option value="">Любой</option>
-                        <option value="ru">Русский</option>
-                        <option value="en">Английский</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block mb-1">Дата</label>
-                    <input type="date" name="depart_date" class="w-full p-2 border rounded">
-                </div>
-                <div>
-                    <label class="block mb-1">Путешественники</label>
-                    <input type="number" name="travelers" class="w-full p-2 border rounded" min="1" value="1">
-                </div>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Найти</button>
-            </form>
-        </div>
+    </header>
+    <main class="flex-grow max-w-6xl mx-auto p-6">
+        <section class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Найдите свое путешествие</h2>
+            <div class="tabs flex justify-center gap-4 mb-6">
+                <button class="tab-button active px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-300" onclick="openTab('flights')">Рейсы</button>
+                <button class="tab-button px-6 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition duration-300" onclick="openTab('hotels')">Отели</button>
+                <button class="tab-button px-6 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition duration-300" onclick="openTab('excursions')">Экскурсии</button>
+            </div>
+            <div id="flights" class="tab-content active">
+                <form action="{% url 'travels:flights' %}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block mb-1 text-gray-700">Откуда</label>
+                        <input type="text" name="from_city" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Куда</label>
+                        <input type="text" name="to_city" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Дата вылета</label>
+                        <input type="date" name="depart_date" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+<div>
+                        <label class="block mb-1 text-gray-700">Путешественники</label>
+                        <input type="number" name="travelers" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" min="1" value="1">
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Бюджет</label>
+                        <select name="budget" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Любой</option>
+                            <option value="low">Низкий</option>
+                            <option value="medium">Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="flex items-center text-gray-700">
+                            <input type="checkbox" name="direct_flights" class="mr-2">
+                            Только прямые рейсы
+                        </label>
+                    </div>
+                    <div class="md:col-span-3">
+                        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition duration-300">Найти</button>
+                    </div>
+                </form>
+            </div>
+            <div id="hotels" class="tab-content hidden">
+                <form action="{% url 'travels:hotels' %}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block mb-1 text-gray-700">Город</label>
+                        <input type="text" name="city" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Тип размещения</label>
+                        <select name="accommodation" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Любой</option>
+                            <option value="hotel">Отель</option>
+                            <option value="hostel">Хостел</option>
+                            <option value="apartment">Апартаменты</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Дата</label>
+                        <input type="date" name="depart_date" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Путешественники</label>
+                        <input type="number" name="travelers" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" min="1" value="1">
+                    </div>
+                    <div class="md:col-span-3">
+                        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition duration-300">Найти</button>
+                    </div>
+                </form>
+            </div>
+            <div id="excursions" class="tab-content hidden">
+                <form action="{% url 'travels:excursions' %}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block mb-1 text-gray-700">Город</label>
+                        <input type="text" name="city" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Тип экскурсии</label>
+                        <select name="excursion_type" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Любой</option>
+                            <option value="group">Групповая</option>
+<option value="individual">Индивидуальная</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Тема</label>
+                        <select name="theme" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Любая</option>
+                            <option value="history">История</option>
+                            <option value="culture">Культура</option>
+                            <option value="nature">Природа</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Язык</label>
+                        <select name="language" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Любой</option>
+                            <option value="ru">Русский</option>
+                            <option value="en">Английский</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Дата</label>
+                        <input type="date" name="depart_date" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-700">Путешественники</label>
+                        <input type="number" name="travelers" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" min="1" value="1">
+                    </div>
+                    <div class="md:col-span-3">
+                        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition duration-300">Найти</button>
+                    </div>
+                </form>
+            </div>
+        </section>
         <section class="destinations">
-            <h2 class="text-2xl font-bold mb-4">Популярные направления</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Популярные направления</h2>
             <div class="destinations-grid">
                 {% for destination in destinations %}
                 <div class="destination-card">
                     <img src="{{ destination.image.url }}" alt="{{ destination.name }}">
-                    <h3>{{ destination.name }}</h3>
-                    <p>{{ destination.description }}</p>
+                    <h3 class="text-xl font-semibold">{{ destination.name }}</h3>
+                    <p class="text-gray-600">{{ destination.description }}</p>
                     <p class="price">от {{ destination.price }} ₽</p>
                 </div>
                 {% empty %}
-                <p>Направления пока не добавлены.</p>
+                <p class="text-gray-600">Направления пока не добавлены.</p>
                 {% endfor %}
             </div>
         </section>
-    </div>
+    </main>
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-lg font-semibold mb-2">TravelEasy</p>
+            <p class="text-sm mb-4">Планируйте свои путешествия с легкостью!</p>
+            <div class="flex justify-center gap-4 mb-4">
+                <a href="#" class="text-blue-200 hover:text-white transition duration-300">О нас</a>
+                <a href="#" class="text-blue-200 hover:text-white transition duration-300">Контакты</a>
+                <a href="#" class="text-blue-200 hover:text-white transition duration-300">Политика конфиденциальности</a>
+            </div>
+            <p class="text-sm">&copy; 2025 TravelEasy. Все права защищены.</p>
+        </div>
+    </footer>
     <script type="text/babel">
         function openTab(tabName) {
             const tabs = document.querySelectorAll('.tab-content');
@@ -158,57 +189,9 @@
             tabs.forEach(tab => tab.classList.add('hidden'));
             buttons.forEach(button => button.classList.remove('active'));
             document.getElementById(tabName).classList.remove('hidden');
-            document.querySelector(`button[onclick="openTab('${tabName}')"]`).classList.add('active');
+            document.querySelector(`button[onclick="openTab('${tabName}')"]`).classList.
+add('active');
         }
     </script>
-    <style>
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-button { padding: 10px 20px; background: #e5e7eb; border-radius: 5px; cursor: pointer; }
-        .tab-button.active { background: #2563eb; color: white; }
-        .tab-content.hidden { display: none; }
-        .destinations {
-            max-width: 800px;
-            margin: 40px auto;
-            text-align: center;
-        }
-        .destinations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        .destination-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
-            transition: transform 0.2s;
-        }
-        .destination-card:hover {
-            transform: translateY(-5px);
-        }
-        .destination-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
-        .destination-card h3 {
-            margin: 10px;
-            color: #2b6cb0;
-        }
-        .destination-card p {
-            margin: 0 10px 10px;
-            color: #555;
-        }
-        .price {
-            font-weight: bold;
-            color: #38a169;
-            margin-bottom: 15px;
-        }
-        @media (max-width: 600px) {
-            .destinations-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 </body>
 </html>

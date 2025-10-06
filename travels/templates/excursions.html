@@ -13,27 +13,49 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
-    <div class="auth-links">
-        {% if user.is_authenticated %}
-        <p>Привет, {{ user.username }}!
-            <a href="{% url 'travels:profile' %}">Личный кабинет</a> |
-            <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
-                {% csrf_token %}
-                <button type="submit" class="link-button">Выйти</button>
-            </form>
-        </p>
-        {% else %}
-        <p><a href="{% url 'travels:login' %}">Войти</a> | <a href="{% url 'travels:register' %}">Регистрация</a></p>
-        {% endif %}
-    </div>
-    <div id="excursions-container">
-        <div class="max-w-4xl mx-auto p-4">
-            <h1 class="text-2xl font-bold mb-4">Экскурсии</h1>
-            <p>Загрузка экскурсий...</p>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+    <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-4 shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center px-4">
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold">TravelEasy</h1>
+            </div>
+            <div class="auth-links flex items-center gap-4">
+                {% if user.is_authenticated %}
+                    <span>Привет, {{ user.username }}!</span>
+                    <a href="{% url 'travels:profile' %}" class="text-blue-200 hover:text-white transition duration-300">Личный кабинет</a>
+                    <form method="POST" action="{% url 'travels:logout' %}" class="logout-form-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="link-button text-blue-200 hover:text-white transition duration-300">Выйти</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'travels:login' %}" class="text-blue-200 hover:text-white transition duration-300">Войти</a>
+                    <span class="text-blue-200">|</span>
+                    <a href="{% url 'travels:register' %}" class="text-blue-200 hover:text-white transition duration-300">Регистрация</a>
+                {% endif %}
+            </div>
         </div>
-    </div>
-    <a href="{% url 'travels:index' %}" class="btn">На главную</a>
+    </header>
+    <main class="flex-grow max-w-6xl mx-auto p-6">
+        <div id="excursions-container">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h1 class="text-2xl font-bold mb-4 text-gray-800">Экскурсии</h1>
+                <p class="text-gray-600">Загрузка экскурсий...</p>
+            </div>
+        </div>
+        <a href="{% url 'travels:index' %}" class="btn inline-block mt-4">На главную</a>
+    </main>
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-lg font-semibold mb-2">TravelEasy</p>
+            <p class="text-sm mb-4">Планируйте свои путешествия с легкостью!</p>
+            <div class="flex justify-center gap-4 mb-4">
+                <a href="#" class="text-blue-200 hover:text-white transition duration-300">О нас</a>
+                <a href="#" class="text-blue-200 hover:text-white transition duration-300">Контакты</a>
+                <a href="#" class="text-blue-200 hover:text-white transition duration-300">Политика конфиденциальности</a>
+            </div>
+            <p class="text-sm">&copy; 2025 TravelEasy. Все права защищены.</p>
+        </div>
+    </footer>
     <script type="text/babel">
         const { useState, useEffect } = React;
 
@@ -48,7 +70,8 @@
 
             // Parse URL parameters
             const params = new URLSearchParams(window.location.search);
-            const city = params.get('city') || '';
+            const city = params.
+get('city') || '';
             const excursionType = params.get('excursion_type') || '';
             const theme = params.get('theme') || '';
             const language = params.get('language') || '';
@@ -122,38 +145,38 @@
             const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
             return (
-                <div className="max-w-4xl mx-auto p-4">
-                    <h1 className="text-2xl font-bold mb-4">Экскурсии</h1>
-                    {loading && <p>Загрузка...</p>}
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                    <h1 className="text-2xl font-bold mb-4 text-gray-800">Экскурсии</h1>
+                    {loading && <p className="text-gray-600">Загрузка...</p>}
                     {error && <p className="text-red-500">{error}</p>}
                     {!loading && !error && (
                         <div>
                             <div className="mb-4">
-                                <label className="block mb-1">Путешественники</label>
+                                <label className="block mb-1 text-gray-700">Путешественники</label>
                                 <input
                                     type="number"
                                     value={participants}
                                     onChange={(e) => setParticipants(parseInt(e.target.value) || 1)}
-                                    className="w-full p-2 border rounded"
+className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
                                     min="1"
                                 />
                             </div>
                             {currentExcursions.length === 0 ? (
-                                <p>Экскурсии не найдены. Попробуйте изменить параметры поиска.</p>
+                                <p className="text-gray-600">Экскурсии не найдены. Попробуйте изменить параметры поиска.</p>
                             ) : (
                                 <div className="space-y-4">
                                     {currentExcursions.map(excursion => (
-                                        <div key={excursion.id} className="border rounded p-4">
-                                            <h3 className="text-lg font-semibold">{excursion.name} ({excursion.city})</h3>
-                                            <p>Тип: {excursion.type}</p>
-                                            <p>Тема: {excursion.theme}</p>
-                                            <p>Язык: {excursion.language}</p>
-                                            <p>Цена: {excursion.price} ₽</p>
-                                            <p>Продолжительность: {excursion.duration}</p>
-                                            <p>Дата: {new Date(excursion.schedule).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                                        <div key={excursion.id} className="border rounded-lg p-4 hover:shadow-md transition duration-300">
+                                            <h3 className="text-lg font-semibold text-gray-800">{excursion.name} ({excursion.city})</h3>
+                                            <p className="text-gray-600">Тип: {excursion.type}</p>
+                                            <p className="text-gray-600">Тема: {excursion.theme}</p>
+                                            <p className="text-gray-600">Язык: {excursion.language}</p>
+                                            <p className="text-gray-600">Цена: {excursion.price} ₽</p>
+                                            <p className="text-gray-600">Продолжительность: {excursion.duration}</p>
+                                            <p className="text-gray-600">Дата: {new Date(excursion.schedule).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</p>
                                             <button
                                                 onClick={() => handleBooking(excursion.id)}
-                                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2"
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 mt-2"
                                             >
                                                 Забронировать
                                             </button>
@@ -167,7 +190,7 @@
                                         <button
                                             key={page}
                                             onClick={() => paginate(page)}
-                                            className={`px-4 py-2 rounded ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                                            className={`px-4 py-2 rounded-lg ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300 transition duration-300'}`}
                                         >
                                             {page}
                                         </button>

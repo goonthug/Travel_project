@@ -550,3 +550,288 @@
 .btn { display: block; text-align: center; margin: 20px; padding: 10px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px; }
 .btn:hover { background: #1e40af; }
 
+/* Общие стили */
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+.auth-links {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logout-form-inline {
+    display: inline;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn {
+    display: inline-block;
+    text-align: center;
+    padding: 12px 24px;
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background: #1e40af;
+}
+
+/* Стили для форм */
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tab-button.active {
+    background: #2563eb;
+    color: white;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+/* Стили для направлений */
+.destinations {
+    max-width: 1200px;
+    margin: 40px auto;
+    text-align: center;
+}
+
+.destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.destination-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.destination-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.destination-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.destination-card h3 {
+    margin: 12px;
+    color: #2b6cb0;
+    font-size: 1.25rem;
+}
+
+.destination-card p {
+    margin: 0 12px 12px;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.price {
+    font-weight: bold;
+    color: #38a169;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 600px) {
+    .destinations-grid {
+        grid-template-columns: 1fr;
+    }
+    .tabs {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .tab-button {
+        width: 100%;
+    }
+}
+
+/* Общие стили */
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+.auth-links {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logout-form-inline {
+    display: inline;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn {
+    display: inline-block;
+    text-align: center;
+    padding: 12px 24px;
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+    background: #1e40af;
+    transform: translateY(-2px);
+}
+
+/* Стили для шапки */
+header {
+    transition: background-color 0.3s ease;
+}
+
+header.sticky {
+    backdrop-filter: blur(5px);
+}
+
+/* Стили для форм */
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tab-button.active {
+    background: #2563eb;
+    color: white;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+/* Стили для направлений */
+.destinations {
+    max-width: 1200px;
+    margin: 40px auto;
+    text-align: center;
+}
+
+.destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.destination-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.destination-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.destination-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.destination-card h3 {
+    margin: 12px;
+    color: #2b6cb0;
+    font-size: 1.25rem;
+}
+
+.destination-card p {
+    margin: 0 12px 12px;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.price {
+    font-weight: bold;
+    color: #38a169;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+/* Стили для форм регистрации и авторизации */
+form input,
+form select {
+    transition: all 0.3s ease;
+}
+
+form input:focus,
+form select:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+/* Стили для подвала */
+footer {
+    background-color: #1f2937;
+    color: white;
+}
+
+@media (max-width: 600px) {
+    .destinations-grid {
+        grid-template-columns: 1fr;
+    }
+    .tabs {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .tab-button {
+        width: 100%;
+    }
+    .auth-links {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
